@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // Importa el paquete para abrir URLs.
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-import 'niveles.dart';
+import 'niveles.dart';  // Debe coincidir con el nombre real del archivo
 import 'prueba_PAP.dart';
 
 void main() {
@@ -312,6 +312,7 @@ class PaginaInicio extends StatelessWidget {
               SizedBox(height: 20),
               
               // Botón para PAP (Palabra a Palabra)
+              // Botón para PAP (Palabra a Palabra)
               GestureDetector(
                 onTap: () {
                   try {
@@ -321,13 +322,13 @@ class PaginaInicio extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => PathLevelsScreen()),
                     );
                   } catch (e) {
-                    print("Error en navegación: $e");
-                    // You could also show a dialog with the error message
+                    print("Error al navegar: $e");
+                    // Mostrar un diálogo con el error
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: Text('Error de navegación'),
-                        content: Text(e.toString()),
+                        title: Text('Error'),
+                        content: Text('No se pudo cargar la pantalla: $e'),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
