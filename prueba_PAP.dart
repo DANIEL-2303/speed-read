@@ -1,4 +1,3 @@
-// level_screen.dart
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -23,7 +22,11 @@ class _LevelScreenState extends State<LevelScreen> {
   @override
   void initState() {
     super.initState();
-    startTimer();
+    try {
+      startTimer();
+    } catch (e) {
+      print("Error al iniciar el timer: $e");
+    }
   }
 
   @override
@@ -34,14 +37,16 @@ class _LevelScreenState extends State<LevelScreen> {
 
   void startTimer() {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        if (timeRemaining > 0) {
-          timeRemaining--;
-        } else {
-          timer.cancel();
-          // Aquí podrías agregar lógica para finalizar el nivel
-        }
-      });
+      if (mounted) {  // Verificar si el widget está montado antes de llamar a setState
+        setState(() {
+          if (timeRemaining > 0) {
+            timeRemaining--;
+          } else {
+            timer.cancel();
+            // Aquí podrías agregar lógica para finalizar el nivel
+          }
+        });
+      }
     });
   }
 
@@ -52,14 +57,16 @@ class _LevelScreenState extends State<LevelScreen> {
   }
 
   void nextWord() {
-    setState(() {
-      if (currentWordIndex < words.length - 1) {
-        currentWordIndex++;
-      } else {
-        // Si llegamos al final de las palabras, podríamos agregar alguna lógica
-        // Por ejemplo, mostrar un mensaje de éxito
-      }
-    });
+    if (mounted) {  // Verificar si el widget está montado
+      setState(() {
+        if (currentWordIndex < words.length - 1) {
+          currentWordIndex++;
+        } else {
+          // Si llegamos al final de las palabras, podríamos agregar alguna lógica
+          // Por ejemplo, mostrar un mensaje de éxito
+        }
+      });
+    }
   }
 
   @override
