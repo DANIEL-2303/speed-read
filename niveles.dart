@@ -1,7 +1,8 @@
-// path_levels.dart
 import 'package:flutter/material.dart';
-import 'prueba_PAP.dart'; // Importamos la pantalla de nivel
 import 'dart:math';
+import 'main.dart';
+// Importamos la clase LevelScreen correctamente
+import 'prueba_PAP.dart';
 
 class PathLevelsScreen extends StatelessWidget {
   @override
@@ -84,18 +85,8 @@ class PathLevelsScreen extends StatelessWidget {
                 child: Stack(
                   children: [
                     // Flecha de regreso
-                    Positioned(
-                      bottom: 20,
-                      right: 20,
-                      child: GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 36,
-                        ),
-                      ),
-                    ),
+                    
+
                     
                     // Camino de niveles con líneas punteadas
                     CustomPaint(
@@ -108,15 +99,15 @@ class PathLevelsScreen extends StatelessWidget {
                       context,
                       level: 1,
                       top: 80,
-                      left: 40,
+                      left: MediaQuery.of(context).size.width / 2 - 25, // Centrado horizontalmente
                     ),
                     
                     // Nivel 2
                     _buildLevelButton(
                       context,
                       level: 2,
-                      top: 160,
-                      left: 200,
+                      top: 180,
+                      left: MediaQuery.of(context).size.width / 2 + 50, // Ligeramente a la derecha
                     ),
                     
                     // Nivel 3  
@@ -124,15 +115,15 @@ class PathLevelsScreen extends StatelessWidget {
                       context,
                       level: 3,
                       top: 280,
-                      left: 80,
+                      left: MediaQuery.of(context).size.width / 2 - 25, // Centrado horizontalmente
                     ),
                     
                     // Nivel 4
                     _buildLevelButton(
                       context,
                       level: 4,
-                      top: 350,
-                      left: 220,
+                      top: 380,
+                      left: MediaQuery.of(context).size.width / 2 + 50, // Ligeramente a la derecha
                     ),
                     
                     // Nivel 5
@@ -140,11 +131,33 @@ class PathLevelsScreen extends StatelessWidget {
                       context,
                       level: 5,
                       top: 480,
-                      left: 120,
+                      left: MediaQuery.of(context).size.width / 2 - 25, // Centrado horizontalmente
                     ),
                   ],
                 ),
               ),
+              Positioned(
+                      bottom: 20,
+                      right: 20,
+                      child: GestureDetector(
+                        onTap: () {
+                          print("Botón de regreso tocado");
+                          try {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => MyHomePage()),
+                            );
+                          } catch (e) {
+                            print("Error al navegar: $e");
+                          }
+                        },
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Colors.black,
+                          size: 36,
+                        ),
+                      ),
+                    ),
             ],
           ),
         ),
@@ -158,12 +171,30 @@ class PathLevelsScreen extends StatelessWidget {
       left: left,
       child: GestureDetector(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => LevelScreen(level: level),
-            ),
-          );
+          try {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LevelScreen(level: level),
+              ),
+            );
+          } catch (e) {
+            print("Error al navegar: $e");
+            // Mostrar diálogo de error
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('Error'),
+                content: Text('No se pudo cargar el nivel: $e'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Cerrar'),
+                  ),
+                ],
+              ),
+            );
+          }
         },
         child: Container(
           width: 50,
@@ -188,7 +219,7 @@ class PathLevelsScreen extends StatelessWidget {
   }
 }
 
-// Pintor personalizado para dibujar las líneas punteadas
+// Pintor personalizado para dibujar las líneas punteadas - CORREGIDO
 class PathPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -202,13 +233,16 @@ class PathPainter extends CustomPainter {
     final dashWidth = 5.0;
     final dashSpace = 5.0;
     
-    // Puntos para las conexiones
+    // Calculando el centro horizontal
+    final centerX = size.width / 2;
+    
+    // Puntos para las conexiones (ajustados al nuevo posicionamiento)
     final points = [
-      Offset(65, 105), // Centro del nivel 1
-      Offset(225, 185), // Centro del nivel 2
-      Offset(105, 305), // Centro del nivel 3
-      Offset(245, 375), // Centro del nivel 4
-      Offset(145, 505), // Centro del nivel 5
+      Offset(centerX, 105),           // Centro del nivel 1
+      Offset(centerX + 75, 205),      // Centro del nivel 2
+      Offset(centerX, 305),           // Centro del nivel 3
+      Offset(centerX + 75, 405),      // Centro del nivel 4
+      Offset(centerX, 505),           // Centro del nivel 5
     ];
     
     // Dibujar líneas punteadas entre los puntos
@@ -218,10 +252,14 @@ class PathPainter extends CustomPainter {
     _drawDashedLine(canvas, points[3], points[4], dashWidth, dashSpace, paint);
   }
   
+  // Método corregido para evitar bucles infinitos
   void _drawDashedLine(Canvas canvas, Offset start, Offset end, double dashWidth, double dashSpace, Paint paint) {
     double dx = end.dx - start.dx;
     double dy = end.dy - start.dy;
     double distance = sqrt(dx * dx + dy * dy);
+    
+    if (distance <= 0) return; // Evitar división por cero
+    
     double dashCount = distance / (dashWidth + dashSpace);
     double dashDx = dx / dashCount;
     double dashDy = dy / dashCount;
@@ -230,10 +268,32 @@ class PathPainter extends CustomPainter {
     double currentDx = start.dx;
     double currentDy = start.dy;
     
-    while (currentDx < end.dx || currentDy < end.dy) {
+    // Límite para evitar bucles infinitos
+    int maxIterations = 1000;
+    int currentIteration = 0;
+    
+    while (((dx > 0 && currentDx < end.dx) || (dx < 0 && currentDx > end.dx) || 
+           (dx == 0)) && 
+           ((dy > 0 && currentDy < end.dy) || (dy < 0 && currentDy > end.dy) || 
+           (dy == 0)) && 
+           currentIteration < maxIterations) {
+           
       Offset p1 = Offset(currentDx, currentDy);
-      currentDx += dashDx;
-      currentDy += dashDy;
+      
+      // Avanzar por el largo del dash o espacio
+      double stepDx = dashDx;
+      double stepDy = dashDy;
+      
+      currentDx += stepDx;
+      currentDy += stepDy;
+      
+      // Asegurarse de no pasarse del punto final
+      if ((dx > 0 && currentDx > end.dx) || (dx < 0 && currentDx < end.dx)) {
+        currentDx = end.dx;
+      }
+      if ((dy > 0 && currentDy > end.dy) || (dy < 0 && currentDy < end.dy)) {
+        currentDy = end.dy;
+      }
       
       if (isDash) {
         Offset p2 = Offset(currentDx, currentDy);
@@ -241,8 +301,12 @@ class PathPainter extends CustomPainter {
       }
       
       isDash = !isDash;
-      currentDx += dashDx;
-      currentDy += dashDy;
+      currentIteration++;
+      
+      // Si hemos llegado al final, salir del bucle
+      if ((currentDx == end.dx) && (currentDy == end.dy)) {
+        break;
+      }
     }
   }
 
